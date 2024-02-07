@@ -1,27 +1,27 @@
 {
-    "id": "B2A04369",
-    "path": "~/GitHub/Bioinformatics/script.R",
-    "project_path": "script.R",
+    "id": "2CE84FF2",
+    "path": "~/GitHub/Bioinformatics/Code/HW5.R",
+    "project_path": "Code/HW5.R",
     "type": "r_source",
-    "hash": "2515046870",
+    "hash": "1716617041",
     "contents": "",
     "dirty": false,
-    "created": 1706656625600.0,
+    "created": 1707262984630.0,
     "source_on_save": false,
     "relative_order": 1,
     "properties": {
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "3,0",
-        "scrollLine": "0"
+        "cursorPosition": "122,0",
+        "scrollLine": "108"
     },
     "folds": "",
-    "lastKnownWriteTime": 1706658137,
+    "lastKnownWriteTime": 1707264493,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1706658137972,
+    "last_content_update": 1707264493128,
     "read_only": false,
     "read_only_alternatives": []
 }
