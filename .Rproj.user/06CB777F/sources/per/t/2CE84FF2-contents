@@ -88,8 +88,8 @@ print(c_content)
 print(G_content)
 #[1] 0.2758974
 #[1] 0.2071795
-#GC content is .482 = 48.2%
-
+#GC content is 0.4794872 = 48%
+c_content+G_content
 ####Convert alignment to SeqinR format ####
 PAWA <- msa(mycombinedSeq)
 PAWA
