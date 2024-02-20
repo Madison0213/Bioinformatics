@@ -1,27 +1,27 @@
 {
-    "id": "1DF420A7",
-    "path": "~/GitHub/Bioinformatics/Code/HW6.R",
-    "project_path": "Code/HW6.R",
+    "id": "DD8CD460",
+    "path": "~/GitHub/Bioinformatics/Code/Midterm1.R",
+    "project_path": "Code/Midterm1.R",
     "type": "r_source",
-    "hash": "1168288741",
+    "hash": "3739203787",
     "contents": "",
     "dirty": false,
-    "created": 1707432694757.0,
+    "created": 1708396186411.0,
     "source_on_save": false,
-    "relative_order": 2,
+    "relative_order": 3,
     "properties": {
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "100,0",
-        "scrollLine": "91"
+        "cursorPosition": "109,63",
+        "scrollLine": "96"
     },
     "folds": "",
-    "lastKnownWriteTime": 1708024880,
+    "lastKnownWriteTime": 1708407118,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1708024880406,
+    "last_content_update": 1708407118892,
     "read_only": false,
     "read_only_alternatives": []
 }
