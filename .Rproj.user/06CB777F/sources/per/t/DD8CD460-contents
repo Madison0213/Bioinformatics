@@ -21,6 +21,9 @@ library("r3dmol")
 # 1. Import and align your DNA sequences
 combinedseq <- readDNAStringSet("Data/sequences.fasta")
 combinedseq
+print(combinedseq, show="complete")
+
+#Number 6 has 641bp while all the others have 642bp
 
 #### Creating an msa alignment ####
 msaalignment <- msa(combinedseq)
@@ -28,9 +31,6 @@ msaalignment
 
 print(msaalignment, show="complete")
 
-#### Creating a consensus ####
-consensus <- consensusString(msaalignment)
-print(consensus)
 ---------------------------------------------------------
 # 2. Are any of the samples different from the rest? 
 
@@ -45,24 +45,26 @@ print(mutations)
 
 #If so, what kinds of mutations do you observe in this individual (or individuals)?
 
-#NEED TO FIGURE OUT TYPES OF MUTATIONS
+#most likely silent mutations
 
 --------------------------------------------------------------------
 # 3. What is the gene? hbb gene for beta globin
-# What is the accession number of the best match to your search? AY356351.1
+# What is the accession number of the best match to your search? LC121775
 # I used individual 6 to find this accession number
+# I used BLAST to find the gene and then GenBank for the accession number
 --------------------------------------------------------------------
 # 4. Who is the most different?
-
-#Visualize in Phylogenetic tree
-HSTree <- nj(d)
-plot(HSTree, main="Phylogenetic Tree of Homo sapains Gene Sequences")
 
 #Create a distance matrix
 MSACom <- msaConvert(msaalignment, type="seqinr::alignment")
 d <- dist.alignment(MSACom)
 print(d)
-#Individual 6 is the most different  
+
+#Visualize in Phylogenetic tree
+HSTree <- nj(d)
+plot(HSTree, main="Phylogenetic Tree of Homo sapains Gene Sequences")
+#phylogenetic tree is in the output folder
+#Individual 6 is the most different
 
 # Choose one DNA sequence to translate to protein
 individual6 <- combinedseq[[6]]  
@@ -94,6 +96,12 @@ GP
 Get.diseases(GP, directorypath = getwd())
 #NULL
 #There are no diseases associated with this gene.
+
+#I went on OMIM and searched the "Hemoglobin subunit beta"
+#I found the diseases: thalassemia, erythrocytosis, heinz body anemia, 
+#methemoglobinemia, and sickle cell disease.
+#I don't think we can know what disease they have, but they could have any one 
+#of these diseases.
 ---------------------------------------------------------------
 # 7. 3-D structure of protein 
 FAlpha<-fetch_alphafold_prediction(accession_number)
