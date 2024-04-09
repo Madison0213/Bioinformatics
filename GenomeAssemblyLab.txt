@@ -1,0 +1,314 @@
+## Genome Assembly Lab
+# Modeled after Casey Dunn's Genome Assembly lab at Yale
+
+# reference-based assembly of a microbial genome
+# https://en.wikipedia.org/wiki/Thermus_thermophilus
+# This lab will focus on a small genome and a small number of sequence reads,
+# this is for convenience.
+# A larger plant or animal genome would require:
+# higher coverage (more reads)
+# more memory (RAM)
+# more compute time
+
+
+###################
+## install software
+###################
+
+
+# lets first work on installing four pieces of software that we will be using in future labs. This will take up all or most of our time today
+# the software is picard, samtools, bowtie2, and gatk
+
+# some of these are available through the conda package manager, so we'll start by installing that. https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html
+# I highly recommend using the miniconda distribution. It is the core software manager, and it allows you to install what you need. The full installation (Anaconda) comes with a bunch of pre-installed software and it's much larger.
+# follow the installation instructions in the above website link. For those of you on a mac, use those instructions. If you're on a PC, try opening your Linux environment and following the linux installation instructions. If for some reason that doesn't work, there is a windows installer that you can try.
+# start by clicking on "Miniconda" and then scrolling down to the "Quick command line install" section, and select the kind of computer you're using. That will give you a series of commands to use. Copy them one at a time and plug them into your command line screen
+
+# conda works best when you create 'environments'. These are independent directories that contain a specific collection of Conda packages that you have installed. So, if we want an environment for doing bioinformatics work, you could create one called bioinformatics. I went with a slightly shorter name just so I don't have to type as many characters:
+
+conda create --name bioinf
+
+# you can then 'activate' an environment by running:
+
+conda activate bioinf
+
+# Once Bioconda is installed we can use it to install some of the other software that we need. Similar to R, much of the software on the command line is built by independent developers, and they publish the software on their 'channels'. So the first step is to add some common channels
+# start with the three channels in this link: https://bioconda.github.io/ Copy those four commands into your command line and press enter.
+
+For those of you using new M1/M2 chip Macs, there might be some issues. If you try to install packages and it doesn't work (see installation of packages below), try and use some of the commands in the following link: https://github.com/conda/conda/issues/12206
+# these worked for me: 
+
+conda config --env --set subdir osx-64
+conda install python=3.7
+
+# then update conda:
+conda update conda
+
+# Start with bowtie2: https://anaconda.org/bioconda/bowtie2
+# Bowtie 2 is an ultrafast and memory-efficient tool for aligning sequencing reads to long reference sequences
+# these can be installed directly on the command line using the 'conda install' command and specifying bioconda, so like this: 
+
+conda install bioconda::bowtie2
+# or:
+conda install bowtie2
+
+# to install without conda, download the most recent version from the developer source: https://sourceforge.net/projects/bowtie-bio/files/bowtie2/ 
+# bowtie homepage: https://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
+# move the downloaded .zip file to a folder where you keep your binaries on your computer. Standard practice is to keep it in a folder called 'bin' in your root directory. Unzip the file. It should have a 'bowtie2' binary in there. To be able to call the file at will from the command line you'll need to tell your zsh shell to look in that folder by default. This is called adding to your path variable. Use the following command, modified for your computer: 
+
+path+=('/Users/ojohnson/bin/bowtie2-2.5.3-macos-x86_64')
+
+# you should now be able to type 'bowtie2' on the command line and run the software
+
+# also, check out all the software that you can install through bioconda! https://anaconda.org/bioconda/repo
+
+
+# next, let's install gatk. We'll be using version 4: GATK4
+# GATK is the Genome Analysis Toolkit; Variant Discovery in High-Throughput Sequencing Data
+
+# This command worked for me: 
+
+conda install bioconda::gatk4
+
+# you could also try this one from a help page (https://www.biostars.org/p/9497941/):
+
+conda create -n gatk4 -c conda-forge -c bioconda gatk4
+
+
+# next we'll install picard: https://anaconda.org/bioconda/picard
+# picard is a set of command line tools (in Java) for manipulating high-throughput sequencing (HTS) data and formats such as SAM/BAM/CRAM and VCF.
+
+conda install bioconda::picard
+
+# last thing for today, we'll install samtools: https://anaconda.org/bioconda/samtools
+# https://github.com/samtools/samtools
+# samtools: mpileup and other tools for handling SAM, BAM, and CRAM files
+
+conda install bioconda::samtools
+
+# or install from source: https://www.htslib.org/download/
+
+
+###############
+## PART 2
+###############
+
+
+# create a project directory on your computer in your GitHub directory. Name this directory 'seqaln' for sequence alignment. Use the following commands:
+
+mkdir seqaln
+
+export PROJ_DIR=/your/path/GitHub/Bioinformatics/seqaln
+
+# on my computer, this second command will be:
+
+export PROJ_DIR=/Users/ojohnson/Documents/GitHub/Bioinformatics_Spring2024/seqaln
+
+# for a windows computer, the path with start with C:\
+
+# this sets the 'PROJ_DIR' variable to the path to our working directory, similar to 'setwd()' in R. You can confirm this by running:
+
+echo $PROJ_DIR
+
+## the Genome reference that we will be using is here:
+# https://www.ncbi.nlm.nih.gov/genome/genomes/461
+
+# we will chose one of these later on:
+# ftp://ftp.ncbi.nlm.nih.gov/genomes/all/GCA/900/604/845/GCA_900604845.1_TTHNAR1
+
+###############
+## Genome setup
+###############
+
+#Get genome files
+# first, create the reference genome directory and download the genome files into it
+
+mkdir -p $PROJ_DIR/genome && cd $PROJ_DIR/genome
+
+# a few notes on the previous command. The '-p' adds intermediate directories as well as the target one. the '&&' is do the things before and the things after, so here' you're making a directory and then moving into that new directory
+
+# for any command, (say, 'mkdir') you can get the help page by adding the '--help' flag after the command, so here this would be: 
+
+mkdir --help
+
+# or (depending on the program):
+
+man mkdir
+
+# if you use the 'man' option, this will open in a text editor within the shell. press 'q' to exit the editor
+
+
+# next, use the wget command to 'fetch' the genome files from the ncbi website. These will be saved to your current working directory (in this case the 'genome' folder). We'll use this one: 
+# https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_900604845.1/
+
+# download it using the wget command, which dowloads stuff off the internet
+wget https://www.ncbi.nlm.nih.gov/assembly/GCA_900604845.1
+
+#unzip the DNA sequence & index
+unzip ncbi_dataset.zip 
+
+# create a symbolic link with a simpler name for the genome
+# what does 'ln' do? check the man page
+ln -s ncbi_dataset/data/GCA_900604845.1/GCA_900604845.1_TTHNAR1_genomic.fna Thermus_thermophilus_TTHNAR1.fa
+
+
+# How many sequences are in the genome assembly for this bacterium?
+# hint, use: 
+grep ">" file.fasta | wc -l
+
+# What cellular structures contain the genomic information (hint: look at the sequence names)?
+
+
+#samtools index genome
+# https://www.biostars.org/p/212594/
+# Indexing a genome can be explained similar to indexing a book. 
+# If you want to know on which page a certain word appears or a chapter begins, 
+# it is much more efficient/faster to look it up in a pre-built index than going 
+# through every page of the book until you found it. Same goes for alignments. 
+# Indices allow the aligner to narrow down the potential origin of a query sequence 
+# within the genome, saving both time and memory.
+
+samtools faidx Thermus_thermophilus_TTHNAR1.fa
+
+# Why do we have to index a genome before mapping?
+
+# picard dictionary for genome
+
+picard CreateSequenceDictionary \
+    REFERENCE=Thermus_thermophilus_TTHNAR1.fa \
+    OUTPUT=Thermus_thermophilus_TTHNAR1.dict
+
+# build bowtie2 genome index
+
+bowtie2-build Thermus_thermophilus_TTHNAR1.fa Thermus_thermophilus_TTHNAR1
+
+#####################
+## Get sequence reads
+#####################
+
+# https://trace.ncbi.nlm.nih.gov/Traces/sra/?run=SRR5324768
+# from "Recovery of nearly 8,000 metagenome-assembled genomes substantially expands the tree of life."
+# Nat Microbiol. 2017 Nov;2(11):1533-1542. doi: 10.1038/s41564-017-0012-7. Epub 2017 Sep 11.
+
+# get reads from SRA, put into project directory
+
+cd $PROJ_DIR
+
+mkdir fastq && cd fastq
+
+export SRR=SRR5324768
+
+wget https://github.com/marctollis/INF515-Comparative-Genomics_fall22/raw/main/labs/lab_1/${SRR}_pass_1.fastq.gz
+wget https://github.com/marctollis/INF515-Comparative-Genomics_fall22/raw/main/labs/lab_1/${SRR}_pass_2.fastq.gz
+
+# if you want to rename them to something shorter:
+# mv ${SRR}_pass_1.fastq.gz ${SRR}_1.fastq.gz
+# mv ${SRR}_pass_2.fastq.gz ${SRR}_2.fastq.gz
+
+# look at the first few lines of each file (a few options)
+gzcat ${SRR}_pass_1.fastq.gz | head
+gzcat ${SRR}_pass_2.fastq.gz | head 
+
+gzip -cd ${SRR}_pass_1.fastq.gz | head
+gzip -cd ${SRR}_pass_2.fastq.gz | head
+
+less -N ${SRR}_pass_1.fastq.gz
+less -N ${SRR}_pass_2.fastq.gz
+
+# What are the read lengths?
+
+
+# What do the 4 lines for each read in a fastq file indicate?
+
+
+# Look at the read names for pass_1 and pass_2. What information is the same, and what is different?
+
+
+# How do you explain the differences in the read names between the two files?
+
+
+#####################
+## Alignment Time!!!!
+#####################
+
+cd $PROJ_DIR
+
+mkdir -p alignment
+
+# http://bowtie-bio.sourceforge.net/bowtie2/manual.shtml
+# http://www.htslib.org/doc/samtools.html
+
+# this step takes about 5 minutes 
+
+bowtie2 -x genome/Thermus_thermophilus_TTHNAR1 \
+        -1 fastq/${SRR}_pass_1.fastq.gz \
+        -2 fastq/${SRR}_pass_2.fastq.gz --sensitive-local \
+        --rg-id ${SRR} --rg SM:${SRR} --rg PL:ILLUMINA \
+    | samtools view -hb - | samtools sort -l 5 -o alignment/${SRR}.bam
+
+# this set of commands involves the use of pipes. What is the utility of this?
+# how many reads were were in the fastq files?
+# how many reads aligned concordantly?
+# what is the meaning of 'concordantly' and 'discordantly'?
+
+
+samtools index alignment/${SRR}.bam
+
+# text view alignment with 
+
+samtools tview alignment/SRR5324768.bam genome/Thermus_thermophilus_TTHNAR1.fa
+
+# type ? for help, q to quit
+# pileup format - is a text-based format for summarizing the base calls of aligned reads to a reference sequence.
+# what do the dots mean?
+# what do the commas mean?
+# what does uppercase mean?
+# what does lowercase mean?
+# what does an asterisk mean?
+# what do colors mean?
+# what does the underline mean?
+# https://en.wikipedia.org/wiki/Pileup_format
+# mapping quality: http://maq.sourceforge.net/qual.shtml#:~:text=What%20is%20Mapping%20Quality%3F,Phred%20is%20the%20mapping%20quality.
+
+##########################
+## Variant Calls with GATK
+##########################
+# https://software.broadinstitute.org/gatk/documentation/tooldocs/3.8-0/org_broadinstitute_gatk_tools_walkers_haplotypecaller_HaplotypeCaller.php
+#This step may take 5-20 minutes depending on your hardware
+
+cd $PROJ_DIR
+
+mkdir -p variants
+
+# we will give this job a little more RAM than the default since gatk gets hungry. 
+# this part will typically take ~10-15 minutes.
+
+gatk --java-options "-Xmx8g" HaplotypeCaller  \
+   --reference genome/Thermus_thermophilus_TTHNAR1.fa \
+   --sample-ploidy 1 \
+   --input alignment/${SRR}.bam \
+   --output variants/${SRR}.vcf
+
+# the output is in the variant call format (vcf)
+# https://samtools.github.io/hts-specs/VCFv4.2.pdf
+# VCF is a text file format (most likely stored in a compressed manner). 
+# It contains meta-information lines, a header line, and then data lines 
+# each containing information about a position in the genome. 
+# The format also has the ability
+# to contain genotype information on samples for each position.
+
+# https://gatk.broadinstitute.org/hc/en-us/articles/360035531692-VCF-Variant-Call-Format
+
+less variants/${SRR}.vcf
+
+# scroll down past the headers using the arrow key
+# look in the REF and ALT columns (4th and 5th) - what are the meanings of these columns and how do you interpret them?
+# particularly LR027517.1:574 and LR027517.1:578
+
+# look in the sample-level information (coliumns 9 and 10): why is GT always 1? 
+# what would you expect the possibilities for GT to be if this were a human genome?
+# why is AD always 0?
+# What is the range for DP (just scroll up and down and give a resonable ballpark answer)?
+# what does DP mean?
+# What do you think this .vcf file be useful for in the future, if it was for your project?
+
